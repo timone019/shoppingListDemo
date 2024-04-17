@@ -19,7 +19,6 @@ LogBox.ignoreLogs(["AsyncStorage has been extracted from"]);
 
 const App = () => {
   const firebaseConfig = {
-    // Add your firebase config info here
     apiKey: API_KEY,
     authDomain: AUTH_DOMAIN,
     projectId: PROJECT_ID,
