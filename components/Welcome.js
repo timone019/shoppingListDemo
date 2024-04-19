@@ -1,19 +1,30 @@
 import { StyleSheet, View, Text, TouchableOpacity, Alert } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAuth, signInAnonymously } from "firebase/auth";
+
 
 const Welcome = ({ navigation }) => {
   const auth = getAuth();
 
-  const signInUser = () => {
-    signInAnonymously(auth)
-      .then(result => {
-        navigation.navigate("ShoppingLists", {userID: result.user.uid });
-        Alert.alert("Signed in Successfully!");
-      })
-      .catch((error) => {
-        Alert.alert("Unable to sign in, try later again.");
-      })
+  const signInUser = async () => {
+    try {
+      const result = await signInAnonymously(auth);
+      await AsyncStorage.setItem('user', JSON.stringify(result.user));
+      navigation.navigate("ShoppingLists", {userID: result.user.uid });
+      Alert.alert("Signed in Successfully!");
+    } catch (error) {
+      Alert.alert("Unable to sign in, try later again.", error.message);
+    }
   }
+  //   signInAnonymously(auth)
+  //     .then(result => {
+  //       navigation.navigate("ShoppingLists", {userID: result.user.uid });
+  //       Alert.alert("Signed in Successfully!");
+  //     })
+  //     .catch((error) => {
+  //       Alert.alert("Unable to sign in, try later again.");
+  //     })
+  // }
 
   return (
     <View style={styles.container}>
