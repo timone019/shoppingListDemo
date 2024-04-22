@@ -10,13 +10,19 @@ import {
   Platform,
 } from "react-native";
 import { useState, useEffect } from "react";
-import { collection, addDoc, onSnapshot, query, where } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
 import { LogBox } from "react-native";
 LogBox.ignoreLogs(["AsyncStorage has been extracted from"]);
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const ShoppingLists = ({ db, route }) => {
+const ShoppingLists = ({ db, route, isConnected }) => {
   const { userID } = route.params;
   const [lists, setLists] = useState([]);
   const [listName, setListName] = useState("");
@@ -33,22 +39,44 @@ const ShoppingLists = ({ db, route }) => {
     }
   };
 
+
+  let unsubShoppinglists;
+
   useEffect(() => {
-    const q = query(collection(db, "shoppinglists"), where("uid", "==", userID));
-    const unsubShoppinglists = onSnapshot(q, (documentsSnapshot) => {
-      let newLists = [];
-      documentsSnapshot.forEach(doc => {
-        newLists.push({ id: doc.id, ...doc.data() })
+
+    if (isConnected === true) {
+
+      // unregister current onSnapshot() listener to avoid registering multiple listeners when
+      // useEffect code is re-executed.
+      if (unsubShoppinglists) unsubShoppinglists();
+      unsubShoppinglists = null;
+
+      const q = query(
+        collection(db, "shoppinglists"),
+        where("uid", "==", userID)
+      );
+       unsubShoppinglists = onSnapshot(q, (documentsSnapshot) => {
+        let newLists = [];
+        documentsSnapshot.forEach((doc) => {
+          newLists.push({ id: doc.id, ...doc.data() });
+        });
+        cacheShoppingLists(newLists);
+        setLists(newLists);
       });
-      cacheShoppingLists(newLists);
-      setLists(newLists);
-    });
+    } else loadCachedLists();
 
     // Clean up code
     return () => {
       if (unsubShoppinglists) unsubShoppinglists();
-    }
-  }, []);
+    };
+  }, [isConnected]);
+
+
+  // load cached shopping lists
+  const loadCachedLists = async () => {
+    const cachedLists = (await AsyncStorage.getItem("shopping_lists")) || [];
+    setLists(JSON.parse(cachedLists));
+  };
 
   const cacheShoppingLists = async (liststoCache) => {
     try {
@@ -56,7 +84,7 @@ const ShoppingLists = ({ db, route }) => {
     } catch (error) {
       console.log(error.message);
     }
-  }
+  };
 
   return (
     <View style={styles.container}>
@@ -71,6 +99,7 @@ const ShoppingLists = ({ db, route }) => {
           </View>
         )}
       />
+      {(isConnected === true) ?
       <View style={styles.listForm}>
         <TextInput
           style={styles.listName}
@@ -104,7 +133,9 @@ const ShoppingLists = ({ db, route }) => {
         >
           <Text style={styles.addButtonText}>Add</Text>
         </TouchableOpacity>
-      </View>
+      </View> : null
+      }
+
       {Platform.OS === "ios" ? (
         <KeyboardAvoidingView behavior="padding" />
       ) : null}

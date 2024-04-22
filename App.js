@@ -2,9 +2,8 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
 // import the screens
 import ShoppingLists from './components/ShoppingLists';
 import Welcome from './components/Welcome';
@@ -47,9 +46,9 @@ useEffect(() => {
   const app = initializeApp(firebaseConfig);
 
     // Initialize Firebase Auth with AsyncStorage
-    const auth = initializeAuth(app, {
-      persistence: getReactNativePersistence(AsyncStorage)
-    });
+    // const auth = initializeAuth(app, {
+    //   persistence: getReactNativePersistence(AsyncStorage)
+    // });
 
   // Initialize Cloud Firestore and get a reference to the service
   const db = getFirestore(app);
