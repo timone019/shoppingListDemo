@@ -14,6 +14,8 @@ import { collection, addDoc, onSnapshot, query, where } from "firebase/firestore
 import { LogBox } from "react-native";
 LogBox.ignoreLogs(["AsyncStorage has been extracted from"]);
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 const ShoppingLists = ({ db, route }) => {
   const { userID } = route.params;
   const [lists, setLists] = useState([]);
@@ -33,11 +35,16 @@ const ShoppingLists = ({ db, route }) => {
 
   useEffect(() => {
     const q = query(collection(db, "shoppinglists"), where("uid", "==", userID));
-    const unsubShoppinglists = onSnapshot(q, (documentsSnapshot) => {
+    const unsubShoppinglists = onSnapshot(q, async (documentsSnapshot) => {
       let newLists = [];
       documentsSnapshot.forEach(doc => {
         newLists.push({ id: doc.id, ...doc.data() })
       });
+      try {
+        await AsyncStorage.setItem("shoppinglists", JSON.stringify(newLists));
+      } catch (error) {
+        console.log(error);
+      }
       setLists(newLists);
     });
 
